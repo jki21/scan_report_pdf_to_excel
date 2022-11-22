@@ -1,3 +1,5 @@
+import re
+
 from PdfUtil import lines_to_blocks
 from CodeScanIssue import CodeScanIssue
 
@@ -5,11 +7,17 @@ big_block_seperator = "Engine Breakdown"
 small_block_seperator = "Sink Details"
 
 
+def desc_clean_up(desc):
+    return re.sub(r'.+?\.\d+(.+)', r'\1', desc)
+
+
 def get_desc_and_serv(lines):
     for i, line in enumerate(lines):
         if line.startswith("Package:") and i > 0:
             words = str.split(lines[i - 1], " ")
-            return {"desc": str.join(" ", words[:-1]), "serv": words[len(words) - 1] if words else ""}
+            desc = desc_clean_up(str.join(" ", words[:-1]))
+            serv =  words[len(words) - 1] if words else ""
+            return {"desc": desc, "serv": serv}
     return ""
 
 
