@@ -5,18 +5,19 @@ from CodeScanIssue import CodeScanIssue
 
 big_block_seperator = "Engine Breakdown"
 small_block_seperator = "Sink Details"
+noise_pattern = re.compile(r".+Copyright.+Micro Focus or one of its affiliates\.\d+")
 
 
-def desc_clean_up(desc):
-    return re.sub(r'.+?\.\d+(.+)', r'\1', desc)
+def noise_clean_up(text):
+    return re.sub(noise_pattern, "", text)
 
 
 def get_desc_and_serv(lines):
     for i, line in enumerate(lines):
         if line.startswith("Package:") and i > 0:
             words = str.split(lines[i - 1], " ")
-            desc = desc_clean_up(str.join(" ", words[:-1]))
-            serv =  words[len(words) - 1] if words else ""
+            desc = noise_clean_up(str.join(" ", words[:-1]))
+            serv = words[len(words) - 1] if words else ""
             return {"desc": desc, "serv": serv}
     return ""
 
@@ -29,6 +30,7 @@ def get_file_from_sink(sink_lines):
 
 
 def parse_issue(lines):
+    lines = [noise_clean_up(raw_line) for raw_line in lines]
     big_blocks = lines_to_blocks(lines, big_block_seperator)
     all_issues = []
     for block in big_blocks:
